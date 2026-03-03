@@ -1,0 +1,60 @@
+:root {
+    /* Paleta de colores */
+    --primary-color: #4f46e5;
+    --bg-color: #f8fafc;
+    --text-main: #1e293b;
+    --accent-color: #ec4899;
+    
+    /* Tipografía y Espaciado */
+    --font-main: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    --padding-std: 20px;
+    --border-radius: 8px;
+}
+
+body {
+    font-family: var(--font-main);
+    background-color: var(--bg-color);
+    color: var(--text-main);
+    margin: 0;
+}
+
+header {
+    background-color: var(--primary-color);
+    color: white;
+    padding: var(--padding-std);
+    text-align: center;
+}
+/*En esta parte hacemos el punto dos de las prácticas donde nos pide hacer el flex*/
+/* 1. Convertimos el contenedor en una caja flexible */
+.container {
+    display: flex;
+    min-height: 100vh; /* Que ocupe todo el alto de la pantalla */
+}
+
+/* 2. Estilo para el menú lateral (Aside) */
+aside {
+    width: 250px; /* Ancho fijo para el menú */
+    background-color: #e2e8f0;
+    padding: var(--padding-std);
+    border-right: 1px solid #cbd5e1;
+}
+
+/* 3. Estilo para el contenido principal (Main) */
+main {
+    flex-grow: 1; /* Esto hace que el main ocupe TODO el espacio restante */
+    padding: var(--padding-std);
+    background-color: var(--bg-color);
+}
+
+/* 4. Media Query: El "truco" para móviles (Punto 4) Cambia las filas a columnas */
+@media (max-width: 768px) {
+    .container {
+        flex-direction: column; /* En móviles, uno arriba del otro */
+    }
+    
+    aside {
+        width: 100%; /* El menú ocupa todo el ancho en móvil */
+        border-right: none;
+        border-bottom: 1px solid #cbd5e1;
+    }
+}
