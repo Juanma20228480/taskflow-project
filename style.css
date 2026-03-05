@@ -96,3 +96,37 @@ main {
     color: var(--primary-color);
     margin-left: 10px;
 }
+
+/* --- Punto 4: Media Queries para móviles --- */
+
+/* 768px es el estándar para tablets y móviles en horizontal */
+@media (max-width: 768px) {
+    
+    .container {
+        flex-direction: column; /* Cambia de fila a columna */
+    }
+
+    aside {
+        width: 100%;       /* El menú ocupa todo el ancho */
+        border-right: none;
+        border-bottom: 1px solid #cbd5e1; /* Línea divisoria abajo en vez de al lado */
+        padding: 10px;
+    }
+
+    aside ul {
+        display: flex;     /* Ponemos los botones del menú uno al lado del otro */
+        justify-content: space-around;
+        list-style: none;
+        padding: 0;
+    }
+
+    main {
+        padding: 15px;     /* Reducimos un poco el espacio en móviles */
+    }
+
+    .task-card {
+        flex-direction: column; /* Las tareas también se apilan si son muy largas */
+        align-items: flex-start;
+        gap: 10px;
+    }
+}
