@@ -58,3 +58,41 @@ main {
         border-bottom: 1px solid #cbd5e1;
     }
 }
+
+/* Estilo de la tarjeta de tarea */
+.task-card {
+    display: flex; /*Activamos el flex */
+    align-items: center; /* Alinea los elementos verticalmente al centro */
+    justify-content: space-between; /* Separa el título de los badges */
+    
+    background-color: white;
+    padding: 15px;
+    margin-bottom: 10px;
+    border-radius: var(--border-radius);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1); /* Una sombra suave */
+}
+/* Contenedor para los badges a la derecha */
+.task-info {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Crea un espacio uniforme entre el badge y la categoría */
+}
+
+/* Estilo para los Badges (Urgente, Diseño, etc.) */
+.badge {
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: bold;
+}
+
+.high {
+    background-color: #fee2e2;
+    color: #ef4444; /* Rojo para Urgente */
+}
+
+.category {
+    background-color: #e0e7ff;
+    color: var(--primary-color);
+    margin-left: 10px;
+}
