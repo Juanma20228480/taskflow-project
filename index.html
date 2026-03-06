@@ -24,6 +24,17 @@
 
     <section id="todo-list">
     <h2>Mis Tareas</h2>
+
+    <form id="task-form"> <!--Interactividad con JavaScript y el DOM
+Manipulación de elementos y persistencia local
+Uso de JavaScript para transformar la página estática en una aplicación
+ dinámica que responde a las acciones del usuario. Empezamos creando un formulario -->
+            <input type="text" id="task-input" placeholder="Escribe una nueva tarea:" required>
+            <button type="submit">Añadir</button>
+
+        <div id="tasks-container"></div>
+
+        </form>
     
     <div class="task-card">
         <span class="task-title">Diseñar la interfaz</span>
@@ -33,6 +44,8 @@
      
     </section>
         </main>
+
+        <script src="app.js"></script>
    
     
 </body>
