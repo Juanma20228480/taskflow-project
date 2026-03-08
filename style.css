@@ -130,3 +130,42 @@ main {
         gap: 10px;
     }
 }
+/*Añadimos esto para que no se quede el input pegado al botón de añadir tarea,
+ y para que el input ocupe todo el espacio disponible*/
+#task-form {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+#task-input {
+    flex-grow: 1;
+    padding: 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: var(--border-radius);
+}
+
+.delete-btn {
+    background-color: #ef4444;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+/* Estilo para el botón de eliminar tarea */
+.delete-btn {
+    background-color: #fee2e2; /* Rojo clarito */
+    color: #ef4444;           /* Texto rojo fuerte */
+    border: 1px solid #fca5a5;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease; /* Para que cambie suave al pasar el ratón */
+}
+
+.delete-btn:hover {
+    background-color: #ef4444;
+    color: white;
+}
