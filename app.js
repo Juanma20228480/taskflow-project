@@ -1,3 +1,24 @@
+// 5. Función para cargar las tareas al iniciar (Punto 5)
+function loadTasks() {
+    // Saco el texto del cajón 'tasks'
+    const savedTasks = localStorage.getItem('tasks');
+
+    // Si el cajón no está vacío...
+    if (savedTasks) {
+        // Convertimos el texto JSON de vuelta a un Array de JavaScript
+        const tasksArray = JSON.parse(savedTasks);
+
+        // Por cada tarea que encontramos, la dibujamos en la pantalla
+        tasksArray.forEach(taskText => {
+            addTask(taskText);
+        });
+    }
+}
+
+// ¡IMPORTANTE! Llamamos a la función nada más cargar el script
+loadTasks();
+
+
 // 1. Seleccionamos los elementos del DOM. Utilizamos el DOM para hacer que el HTML se 
 // comporte como un objeto, lo que nos permite manipularlo con JavaScript. 
 // Para ello, utilizamos métodos como getElementById o querySelector para seleccionar
@@ -21,7 +42,7 @@ taskForm.addEventListener('submit', (e) => {
 // 3. Función para crear el HTML de la tarea (Punto 2)
 function addTask(text) {
     const taskCard = document.createElement('div');
-    taskCard.classList.add('task-card'); // Usamos la clase CSS que ya creaste
+    taskCard.classList.add('task-card'); // Usamos la clase CSS que ya creé
 
     taskCard.innerHTML = `
         <span class="task-title">${text}</span>
@@ -55,3 +76,31 @@ function addTask(text) {
 
     tasksContainer.appendChild(taskCard);
 }
+
+// 4. Función para guardar las tareas en LocalStorage (Punto 4)
+function saveTasks() {
+    const tasks = [];
+    // Buscamos todos los títulos de las tareas que hay en el DOM actualmente
+    const allTaskTitles = document.querySelectorAll('.task-title');
+    
+    allTaskTitles.forEach(title => {
+        tasks.push(title.innerText); // Metemos el texto en un array
+    });
+
+    // Guardamos el array convertido a String (JSON)
+    localStorage.setItem('tasks', JSON.stringify(tasks));
+}
+
+// Dentro del evento 'submit'
+if (taskText !== "") {
+    addTask(taskText);
+    saveTasks(); // <--- Guardo las tareas cada vez que añado una nueva
+    taskInput.value = "";
+}
+
+// Dentro de la función addTask, en el evento del botón borrar
+deleteBtn.addEventListener('click', () => {
+    taskCard.remove();
+    saveTasks(); // <---Añado esto aquí también
+});
+
