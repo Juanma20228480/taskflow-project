@@ -5,17 +5,17 @@ function loadTasks() {
 
     // Si el cajón no está vacío...
     if (savedTasks) {
-        // Convertimos el texto JSON de vuelta a un Array de JavaScript
+        // Convierto el texto JSON de vuelta a un Array de JavaScript
         const tasksArray = JSON.parse(savedTasks);
 
-        // Por cada tarea que encontramos, la dibujamos en la pantalla
+        // Por cada tarea que encuentro, la dibujamos en la pantalla
         tasksArray.forEach(taskText => {
             addTask(taskText);
         });
     }
 }
 
-// ¡IMPORTANTE! Llamamos a la función nada más cargar el script
+// ¡IMPORTANTE! Llamo a la función nada más cargar el script
 loadTasks();
 
 
@@ -102,5 +102,24 @@ if (taskText !== "") {
 deleteBtn.addEventListener('click', () => {
     taskCard.remove();
     saveTasks(); // <---Añado esto aquí también
+});
+
+// Selecciono el input de búsqueda
+const searchInput = document.getElementById('search-input');
+
+searchInput.addEventListener('input', (e) => {
+    const term = e.target.value.toLowerCase(); // Lo que el usuario escribe en minúsculas
+    const tasks = document.querySelectorAll('.task-card');
+
+    tasks.forEach(task => {
+        const title = task.querySelector('.task-title').innerText.toLowerCase();
+        
+        // Si el título incluye lo que buscamos, mostramos; si no, ocultamos
+        if (title.includes(term)) {
+            task.style.display = 'flex';
+        } else {
+            task.style.display = 'none';
+        }
+    });
 });
 

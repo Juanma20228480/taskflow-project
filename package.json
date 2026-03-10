@@ -1,0 +1,32 @@
+
+
+
+{
+  "name": "taskflow-project",
+  "version": "1.0.0",
+  "description": "TaskFlow es una aplicación web dinámica diseñada para organizar tu día a día. Este proyecto forma parte de mi formación en desarrollo web, aplicando conceptos avanzados de **DOM**, **LocalStorage** y **CSS Flexbox**.",
+  "homepage": "https://github.com/Juanma20228480/taskflow-project#readme",
+  "bugs": {
+    "url": "https://github.com/Juanma20228480/taskflow-project/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Juanma20228480/taskflow-project.git"
+  },
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "devDependencies": {
+    "autoprefixer": "^10.4.27",
+    "postcss": "^8.5.8",
+    "tailwindcss": "^4.2.1"
+  },
+  "dependencies": {
+    "@tailwindcss/postcss": "^4.2.1"
+  }
+}
