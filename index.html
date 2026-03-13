@@ -9,8 +9,7 @@
 <body class="bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-sans min-h-screen p-8 transition-colors duration-300">
 
     <header class="text-center mb-10 flex flex-col items-center gap-4">
-        <h1 class="text-4xl font-black text-indigo-600 dark:text-indigo-400 tracking-tight">TaskFlow prácticas pulpo</h1>
-        
+<h1 class="text-4xl font-black text-sky-500 dark:text-sky-400 tracking-tight">TaskFlow prácticas pulpo</h1>        
         <button id="theme-toggle" class="p-2 bg-white dark:bg-slate-800 shadow-md rounded-xl border border-slate-100 dark:border-slate-700">
             <span class="dark:hidden">🌙</span>
             <span class="hidden dark:inline">☀️</span>
@@ -22,8 +21,8 @@
         <aside class="w-full md:w-64 bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 h-fit">
             <nav>
                 <ul class="space-y-3">
-                    <li class="font-bold text-indigo-600 dark:text-indigo-400 p-2 bg-indigo-50 dark:bg-indigo-900/30 rounded-lg cursor-pointer">Pendientes</li>
-                    <li class="text-slate-500 dark:text-slate-400 p-2 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-lg cursor-pointer transition-colors">Completadas</li>
+                    <li id="btn-show-pending" class="font-bold text-indigo-600 dark:text-indigo-400 p-2 bg-indigo-50 dark:bg-indigo-900/30 rounded-lg cursor-pointer">Pendientes</li>
+                    <li id="btn-show-completed" class="text-slate-500 dark:text-slate-400 p-2 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-lg cursor-pointer transition-colors">Completadas</li>
                 </ul>
             </nav>
         </aside>
@@ -50,6 +49,9 @@
 
                 <div id="tasks-container" class="space-y-4">
                     </div>
+                <div id="completed-container" class="space-y-4 mt-8 pt-8 border-t border-slate-100 dark:border-slate-700 hidden">
+    <h3 class="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">Tareas completadas</h3>
+    </div>    
             </section>
         </main>
     </div>
