@@ -171,3 +171,5 @@ main {
 }
 
 @import "tailwindcss";/* Importamos Tailwind CSS para usar sus clases utilitarias*/
+/* Esto fuerza a Tailwind a reconocer la variante dark */
+@variant dark (&:where(.dark, .dark *));

@@ -1,55 +1,59 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TaskFlow prácticas pulpo</title>
-    <link rel="stylesheet" href="style.css">
+    <title>TaskFlow - Prácticas Pulpo</title>
+    <link rel="stylesheet" href="dist/output.css">
 </head>
-<body>
-    <header>
-            <h1>TaskFlow prácticas pulpo</h1>
+<body class="bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-sans min-h-screen p-8 transition-colors duration-300">
+
+    <header class="text-center mb-10 flex flex-col items-center gap-4">
+        <h1 class="text-4xl font-black text-indigo-600 dark:text-indigo-400 tracking-tight">TaskFlow prácticas pulpo</h1>
+        
+        <button id="theme-toggle" class="p-2 bg-white dark:bg-slate-800 shadow-md rounded-xl border border-slate-100 dark:border-slate-700">
+            <span class="dark:hidden">🌙</span>
+            <span class="hidden dark:inline">☀️</span>
+        </button>
     </header>
     
-    <div class="container"> <aside>
+    <div class="max-w-4xl mx-auto flex flex-col md:flex-row gap-8"> 
+        
+        <aside class="w-full md:w-64 bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 h-fit">
             <nav>
-                <ul>
-                    <li>Pendientes</li>
-                    <li>Completadas</li>
+                <ul class="space-y-3">
+                    <li class="font-bold text-indigo-600 dark:text-indigo-400 p-2 bg-indigo-50 dark:bg-indigo-900/30 rounded-lg cursor-pointer">Pendientes</li>
+                    <li class="text-slate-500 dark:text-slate-400 p-2 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-lg cursor-pointer transition-colors">Completadas</li>
                 </ul>
             </nav>
         </aside>
-    </div>   
-        <main>
 
-    <section id="search-section">
-    <input type="text" id="search-input" placeholder="Buscar tarea...">
-</section>        
-    <section id="todo-list">
-    <h2>Mis Tareas</h2>
+        <main class="flex-1">
+            <section id="search-section" class="mb-6">
+                <input type="text" id="search-input" 
+                    class="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none" 
+                    placeholder="Buscar tarea...">
+            </section>        
 
-    <form id="task-form"> <!--Interactividad con JavaScript y el DOM
-Manipulación de elementos y persistencia local
-Uso de JavaScript para transformar la página estática en una aplicación
- dinámica que responde a las acciones del usuario. Empezamos creando un formulario -->
-            <input type="text" id="task-input" placeholder="Escribe una nueva tarea:" required>
-            <button type="submit">Añadir</button>
+            <section id="todo-list" class="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700">
+                <h2 class="text-xl font-bold mb-6 text-slate-800 dark:text-white">Mis Tareas</h2>
 
-        <div id="tasks-container"></div>
+                <form id="task-form" class="flex gap-2 mb-8">
+                    <input type="text" id="task-input" 
+                        class="flex-1 p-3 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-white focus:border-indigo-500 outline-none" 
+                        placeholder="Escribe una nueva tarea:" required>
+                    <button type="submit" 
+                        class="bg-indigo-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-indigo-700 active:scale-95 transition-all duration-200 focus:ring-4 focus:ring-indigo-500/50 outline-none">
+                        Añadir
+                    </button>
+                </form>
 
-        </form>
-    
-    <div class="task-card">
-        <span class="task-title">Diseñar la interfaz</span>
-        <span class="badge high">Urgente</span>
-        <span class="category">Diseño</span>
-    </div>
-     
-    </section>
+                <div id="tasks-container" class="space-y-4">
+                    </div>
+            </section>
         </main>
+    </div>
 
-        <script src="app.js"></script>
-   
-    
+    <script src="app.js"></script>
 </body>
 </html>

@@ -1,3 +1,29 @@
+// 1. PRIMERO: Configuración del Modo Oscuro (El código que tengo ya hecho, pero lo he puesto al final para que no interfiera con el resto del código)
+document.addEventListener('DOMContentLoaded', () => {
+    const themeToggleBtn = document.getElementById('theme-toggle');
+    
+    // Aplicar el tema guardado antes de que el usuario haga nada
+    if (localStorage.getItem('theme') === 'dark') {
+        document.documentElement.classList.add('dark');
+    }
+
+    if (themeToggleBtn) {
+        console.log("Botón encontrado con éxito");
+        themeToggleBtn.addEventListener('click', () => {
+            document.documentElement.classList.toggle('dark');
+            console.log("Clase dark cambiada");
+            
+            const isDark = document.documentElement.classList.contains('dark');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        });
+    } else {
+        console.error("Error: No se encontró el botón con ID 'theme-toggle'");
+    }
+});
+
+// 2. DESPUÉS: Todo el task manager que sirve para añadir, eliminar, buscar tareas y guardar en LocalStorage (El código que tengo)
+
+
 // 5. Función para cargar las tareas al iniciar (Punto 5)
 function loadTasks() {
     // Saco el texto del cajón 'tasks'
@@ -26,6 +52,21 @@ loadTasks();
 const taskForm = document.getElementById('task-form');
 const taskInput = document.getElementById('task-input');
 const tasksContainer = document.getElementById('tasks-container');
+
+function agregarTarea(texto) {
+    const listaTareas = document.getElementById('tasks-container');
+//  Creo el elemento nuevoDiv pero no lo uso, es solo para mostrar que puedo crear elementos con JavaScript.
+    const nuevoDiv = document.createElement('div');
+// 2. AQUÍ COLOCo LA LÍNEA (Justo después de crear el elemento y antes de añadirle el contenido)
+    nuevoDiv.className = "flex justify-between items-center p-4 bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 transition-all hover:shadow-md group";
+// 3. Inserto el contenido (puedes adaptar esto a tu código)
+    nuevoDiv.innerHTML = `
+        <span class="text-slate-700 dark:text-slate-200 group-hover:text-indigo-600 transition-colors">${texto}</span>
+        <button class="text-slate-400 hover:text-red-500 transition-colors font-medium">Eliminar</button>
+    `;
+// 4. Lo añades a la lista
+    listaTareas.appendChild(nuevoDiv);
+}            
 
 // 2. Escuchamos el evento "submit" del formulario
 taskForm.addEventListener('submit', (e) => {
@@ -122,4 +163,25 @@ searchInput.addEventListener('input', (e) => {
         }
     });
 });
+
+// Seleccionamos el botón por su ID
+const themeToggleBtn = document.getElementById('theme-toggle');
+
+// Escuchamos el clic
+themeToggleBtn.addEventListener('click', () => {
+    // Alternamos la clase 'dark' en el elemento <html>
+    document.documentElement.classList.toggle('dark');
+    
+    // Opcional: Guardar la preferencia en el navegador para que no se pierda al recargar
+    if (document.documentElement.classList.contains('dark')) {
+        localStorage.setItem('theme', 'dark');
+    } else {
+        localStorage.setItem('theme', 'light');
+    }
+});
+
+// Al cargar la página, comprobar si el usuario ya tenía el modo oscuro activado
+if (localStorage.getItem('theme') === 'dark') {
+    document.documentElement.classList.add('dark');
+}
 
