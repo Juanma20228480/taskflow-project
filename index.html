@@ -32,8 +32,21 @@
                 <input type="text" id="search-input" 
                     class="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none" 
                     placeholder="Buscar tarea...">
-            </section>        
+            </section>
 
+     <div id="view-pending">
+        <section class="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700">
+            <h2 class="text-xl font-bold mb-6 text-slate-800 dark:text-white">Tareas Pendientes</h2>
+            <div id="tasks-container" class="space-y-4"></div>
+        </section>
+    </div>
+
+    <div id="view-completed" class="hidden">
+        <section class="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700">
+            <h2 class="text-xl font-bold mb-6 text-slate-800 dark:text-white">Tareas Completadas</h2>
+            <div id="completed-container" class="space-y-4"></div>
+        </section>
+    </div>
             <section id="todo-list" class="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700">
                 <h2 class="text-xl font-bold mb-6 text-slate-800 dark:text-white">Mis Tareas</h2>
 

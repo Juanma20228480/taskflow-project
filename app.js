@@ -6,6 +6,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const tasksContainer = document.getElementById('tasks-container');
     const completedContainer = document.getElementById('completed-container');
 
+    // Elementos de Navegación
+    const btnPending = document.getElementById('btn-show-pending');
+    const btnCompleted = document.getElementById('btn-show-completed');
+    const viewPending = document.getElementById('view-pending');
+    const viewCompleted = document.getElementById('view-completed');
+
     // --- 1. LÓGICA MODO OSCURO ---
     if (localStorage.getItem('theme') === 'dark') {
         document.documentElement.classList.add('dark');
@@ -18,6 +24,21 @@ document.addEventListener('DOMContentLoaded', () => {
             localStorage.setItem('theme', isDark ? 'dark' : 'light');
         });
     }
+
+    // --- 2. LÓGICA DE NAVEGACIÓN (ASIDE) ---
+    function activarFiltro(botonActivo, botonInactivo, vistaMostrar, vistaOcultar) {
+        botonActivo.classList.add('font-bold', 'text-indigo-600', 'bg-indigo-50', 'dark:bg-indigo-900/30');
+        botonActivo.classList.remove('text-slate-500', 'dark:text-slate-400');
+        
+        botonInactivo.classList.remove('font-bold', 'text-indigo-600', 'bg-indigo-50', 'dark:bg-indigo-900/30');
+        botonInactivo.classList.add('text-slate-500', 'dark:text-slate-400');
+
+        vistaMostrar.classList.remove('hidden');
+        vistaOcultar.classList.add('hidden');
+    }
+
+    btnPending.addEventListener('click', () => activarFiltro(btnPending, btnCompleted, viewPending, viewCompleted));
+    btnCompleted.addEventListener('click', () => activarFiltro(btnCompleted, btnPending, viewCompleted, viewPending));
 
     // --- 2. LÓGICA DE TAREAS ---
     if (taskForm) {
@@ -75,5 +96,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         tasksContainer.appendChild(nuevoDiv);
     }
+
+    
 });
 
