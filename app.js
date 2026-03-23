@@ -40,17 +40,56 @@ document.addEventListener('DOMContentLoaded', () => {
     btnPending.addEventListener('click', () => activarFiltro(btnPending, btnCompleted, viewPending, viewCompleted));
     btnCompleted.addEventListener('click', () => activarFiltro(btnCompleted, btnPending, viewCompleted, viewPending));
 
-    // --- 2. LÓGICA DE TAREAS ---
+    // --- 3. LÓGICA DE TAREAS ---
     if (taskForm) {
         taskForm.addEventListener('submit', (e) => {
             e.preventDefault();
             const texto = taskInput.value.trim();
             if (texto !== "") {
                 agregarTarea(texto);
+                actualizarContadores(); // <--- AÑADIR AQUÍ (Sube el contador de pendientes)
                 taskInput.value = ""; // Limpiar input
             }
         });
     }
+
+    // --- 4. LÓGICA DEL BUSCADOR ---
+const searchInput = document.getElementById('search-input');
+
+if (searchInput) {
+    searchInput.addEventListener('input', (e) => {
+        const filtro = e.target.value.toLowerCase(); // Pasamos a minúsculas para que no importe A o a
+        
+        // Buscamos todas las tareas que existan en ambos contenedores
+        const todasLasTareas = document.querySelectorAll('#tasks-container > div, #completed-container > div');
+
+        todasLasTareas.forEach(tarea => {
+            const textoTarea = tarea.querySelector('span').textContent.toLowerCase();
+            
+            // Si el texto de la tarea incluye lo que escribimos, la mostramos; si no, la ocultamos
+            if (textoTarea.includes(filtro)) {
+                tarea.style.display = "flex"; // Usamos flex porque es su clase original de Tailwind
+            } else {
+                tarea.style.display = "none";
+            }
+        });
+    });
+}
+
+searchInput.addEventListener('input', (e) => {
+    const filtro = e.target.value.toLowerCase();
+    const viewPending = document.getElementById('view-pending');
+    const viewCompleted = document.getElementById('view-completed');
+
+    // Si hay texto en el buscador, mostramos ambas secciones para ver resultados
+    if (filtro.length > 0) {
+        viewPending.classList.remove('hidden');
+        viewCompleted.classList.remove('hidden');
+    }
+
+    const todasLasTareas = document.querySelectorAll('#tasks-container > div, #completed-container > div');
+    // ... resto del forEach anterior ...
+});
 
     function agregarTarea(texto) {
         const nuevoDiv = document.createElement('div');
@@ -83,12 +122,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     completedContainer.classList.add('hidden');
                 }
             }
+                actualizarContadores(); // <--- AÑADIR AQUÍ (Actualizar contadores al mover tareas)
         });
 
         // Lógica del Botón Eliminar
         const btnEliminar = nuevoDiv.querySelector('.delete-btn');
         btnEliminar.addEventListener('click', () => {
             nuevoDiv.remove();
+            actualizarContadores(); // <--- AÑADIR AQUÍ (Resta del contador correspondiente)
             if (completedContainer.children.length <= 1) {
                 completedContainer.classList.add('hidden');
             }
@@ -97,6 +138,18 @@ document.addEventListener('DOMContentLoaded', () => {
         tasksContainer.appendChild(nuevoDiv);
     }
 
+    // --- 5. LÓGICA DE ESTADÍSTICAS ---
+function actualizarContadores() {
+    const totalPendientes = document.getElementById('tasks-container').children.length;
+    // Para las completadas, restamos 1 si tienes el <h3> dentro del contenedor
+    const totalCompletadas = document.getElementById('completed-container').querySelectorAll('.group').length;
+
+    document.getElementById('count-pending').textContent = totalPendientes;
+    document.getElementById('count-completed').textContent = totalCompletadas;
+}
+
     
 });
+
+
 
