@@ -47,7 +47,8 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault();
             const texto = taskInput.value.trim();
             if (texto !== "") {
-                agregarTarea(texto);
+                agregarTarea(texto, false);// Agregar tarea sin marcar como completada. False = sin completar
+                guardarTareasEnLocalStorage();// Guardar tareas después de agregar una nueva
                 actualizarContadores();
                 taskInput.value = "";
             }
@@ -78,14 +79,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- 5. FUNCIÓN AGREGAR TAREA ---
-    function agregarTarea(texto) {
+    function agregarTarea(texto, completada = false) {
         const nuevoDiv = document.createElement('div');
         nuevoDiv.className = "flex justify-between items-center p-4 bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 transition-all duration-200 group";
 
         nuevoDiv.innerHTML = `
             <div class="flex items-center gap-3">
-                <input type="checkbox" class="task-checkbox w-5 h-5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer">
-                <span class="text-slate-700 dark:text-slate-200 transition-all">${texto}</span>
+                <input type="checkbox" ${completada ? 'checked' : ''} class="task-checkbox w-5 h-5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer">
+                <span class="text-slate-700 dark:text-slate-200 transition-all ${completada ? 'line-through opacity-50' : ''}">${texto}</span></span>
             </div>
             <button class="delete-btn text-slate-400 hover:text-red-500 transition-colors font-medium">Eliminar</button>
         `;
@@ -101,18 +102,58 @@ document.addEventListener('DOMContentLoaded', () => {
                 span.classList.remove('line-through', 'opacity-50');
                 tasksContainer.appendChild(nuevoDiv);
             }
+            guardarTareasEnLocalStorage(); // Guardar tareas después de cambiar su estado
             actualizarContadores();
         });
 
         const btnEliminar = nuevoDiv.querySelector('.delete-btn');
         btnEliminar.addEventListener('click', () => {
             nuevoDiv.remove();
+            guardarTareasEnLocalStorage(); // Guardar tareas después de eliminar una tarea
             actualizarContadores();
         });
-
-        tasksContainer.appendChild(nuevoDiv);
+        if (completada) {
+            completedContainer.appendChild(nuevoDiv);
+        } else {
+            tasksContainer.appendChild(nuevoDiv);
+        }
+        actualizarContadores();
     }
 
+    //Función para guardar tareas en LocalStorage (para persistencia de datos)
+    function guardarTareasEnLocalStorage() {
+        const tareasPendientes = [];
+        const tareasCompletadas = [];
+    //Recorrer tareas pendientes
+        tasksContainer.querySelectorAll('.group').forEach(tarea => {
+            const texto = tarea.querySelector('span').textContent;
+            tareasPendientes.push(texto);
+        });
+    //Recorrer tareas completadas
+        completedContainer.querySelectorAll('.group').forEach(tarea => {
+            const texto = tarea.querySelector('span').textContent;
+            tareasCompletadas.push(texto);
+        });
+    //Convertir el array de tareas a JSON y guardarlo en LocalStorage
+        localStorage.setItem('tareasPendientes', JSON.stringify(tareasPendientes));
+        localStorage.setItem('tareasCompletadas', JSON.stringify(tareasCompletadas));
+    }
+    
+    function cargarTareasDesdeLocalStorage() {
+        const tareasPendientes = JSON.parse(localStorage.getItem('tareasPendientes')) || [];
+        const tareasCompletadas = JSON.parse(localStorage.getItem('tareasCompletadas')) || [];
+
+        tareasPendientes.forEach(texto => {
+            agregarTarea(texto, false);
+        });
+
+        tareasCompletadas.forEach(texto => {
+            agregarTarea(texto, true);
+        });
+    }
+    // Cargar tareas al iniciar la aplicación
+    cargarTareasDesdeLocalStorage();
+    
     // --- 6. LÓGICA DE ESTADÍSTICAS ---
     function actualizarContadores() {
         const totalPendientes = tasksContainer.children.length;
