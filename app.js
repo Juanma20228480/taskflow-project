@@ -6,6 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const tasksContainer = document.getElementById('tasks-container');
     const completedContainer = document.getElementById('completed-container');
     const searchInput = document.getElementById('search-input');
+    const taskPriority = document.getElementById('task-priority');
     
     // Navegación
     const btnPending = document.getElementById('btn-show-pending');
@@ -15,6 +16,25 @@ document.addEventListener('DOMContentLoaded', () => {
     const viewCompleted = document.getElementById('view-completed');
     const viewAll = document.getElementById('view-all');
     const allContainer = document.getElementById('all-container');
+    const btnCompleteAll = document.getElementById('btn-complete-all');
+    //acción de completar todo
+        if(btnCompleteAll) {
+            btnCompleteAll.addEventListener('click', () => {
+                //Buscamos todas las tareas pendientes y las marcamos como completadas
+                const pendientes = [...tasksContainer.children];
+                pendientes.forEach(tarea => {
+                    const check = tarea.querySelector('input[type="checkbox"]');
+                    if (check) {
+                        check.checked = true;
+                        // IMPORTANTE: Disparamos el evento 'change' manualmente.
+            // Esto hace que se ejecute la lógica de "agregarTarea" que ya tienes escrita.
+                        check.dispatchEvent(new Event('change'));
+                    }
+                });
+            });
+        }
+    
+
 
     // --- 2. LÓGICA MODO OSCURO ---
     if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
@@ -93,15 +113,42 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+    //Actualizamos el submit del formulario para que también tome en cuenta la prioridad
+    if (taskForm) {
+        taskForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const texto = taskInput.value.trim();
+            const prioridad = taskPriority.value;// Capturamos la prioridad
+            if (texto !== "") {
+                agregarTarea(texto, false, prioridad);// Pasamos la prioridad
+                guardarTareasEnLocalStorage();
+                taskInput.value = "";
+            }
+        });
+    }
 
-    function agregarTarea(texto, completada = false) {
+
+    function agregarTarea(texto, completada = false, prioridad = "media") {
         const nuevoDiv = document.createElement('div');
-        nuevoDiv.className = "group flex justify-between items-center p-4 bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 transition-all duration-200";
+        //Definimos un color de badge según la prioridad
+        let badgeColor = "bg-yellow-300";
+        switch (prioridad) {
+            case "alta":
+                badgeColor = "bg-red-500";
+                break;
+            case "baja":
+                badgeColor = "bg-green-500";
+                break;
+        }
 
+
+        nuevoDiv.className = "group flex justify-between items-center p-4 bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 transition-all duration-200";
+        nuevoDiv.setAttribute('data-priority', prioridad); // Guardamos la prioridad como atributo para futuros filtros
         nuevoDiv.innerHTML = `
             <div class="flex items-center gap-3">
                 <input type="checkbox" ${completada ? 'checked' : ''} class="task-checkbox w-5 h-5 rounded border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-indigo-600 focus:ring-indigo-500 cursor-pointer">
                 <span class="text-slate-700 dark:text-slate-200 transition-all ${completada ? 'line-through opacity-50' : ''}">${texto}</span>
+                <span class="ml-2 ${badgeColor} text-white text-xs font-bold uppercase px-2 py-0.5 rounded-full">${prioridad}</span>
             </div>
             <button class="delete-btn text-slate-400 hover:text-red-500 transition-colors font-medium text-sm">Eliminar</button>
         `;
