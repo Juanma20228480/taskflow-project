@@ -7,8 +7,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const completedContainer = document.getElementById('completed-container');
     const searchInput = document.getElementById('search-input');
     const taskPriority = document.getElementById('task-priority');
+    const sortFilter = document.getElementById('sort-filter');
     
-    // Navegación
     const btnPending = document.getElementById('btn-show-pending');
     const btnCompleted = document.getElementById('btn-show-completed');
     const btnShowAll = document.getElementById('btn-show-all');
@@ -17,24 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const viewAll = document.getElementById('view-all');
     const allContainer = document.getElementById('all-container');
     const btnCompleteAll = document.getElementById('btn-complete-all');
-    //acción de completar todo
-        if(btnCompleteAll) {
-            btnCompleteAll.addEventListener('click', () => {
-                //Buscamos todas las tareas pendientes y las marcamos como completadas
-                const pendientes = [...tasksContainer.children];
-                pendientes.forEach(tarea => {
-                    const check = tarea.querySelector('input[type="checkbox"]');
-                    if (check) {
-                        check.checked = true;
-                        // IMPORTANTE: Disparamos el evento 'change' manualmente.
-            // Esto hace que se ejecute la lógica de "agregarTarea" que ya tienes escrita.
-                        check.dispatchEvent(new Event('change'));
-                    }
-                });
-            });
-        }
-    
-
+    const btnClear = document.getElementById('btn-clear-history');
 
     // --- 2. LÓGICA MODO OSCURO ---
     if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
@@ -44,125 +27,70 @@ document.addEventListener('DOMContentLoaded', () => {
     if (themeToggleBtn) {
         themeToggleBtn.addEventListener('click', () => {
             document.documentElement.classList.toggle('dark');
-            const isDark = document.documentElement.classList.contains('dark');
-            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
         });
     }
 
-    // --- 3. LÓGICA DE NAVEGACIÓN ---
-    function activarFiltro(btnActivo, vistaMostrar) {
-        // Reset de botones
-        [btnPending, btnCompleted, btnShowAll].forEach(btn => {
-            if(btn) {
-                btn.classList.remove('font-bold', 'text-indigo-600', 'bg-indigo-50', 'dark:bg-indigo-900/30');
-                btn.classList.add('text-slate-500', 'dark:text-slate-400');
-            }
-        });
-        
-        // Reset de vistas
-        [viewPending, viewCompleted, viewAll].forEach(v => { if(v) v.classList.add('hidden') });
-
-        // Activar seleccionados
-        btnActivo.classList.remove('text-slate-500', 'dark:text-slate-400');
-        btnActivo.classList.add('font-bold', 'text-indigo-600', 'bg-indigo-50', 'dark:bg-indigo-900/30');
-        vistaMostrar.classList.remove('hidden');
-
-        // Si entramos en "Todas", actualizamos ese contenedor específico
-        if (vistaMostrar === viewAll) {
-            actualizarVistaTodas();
-        }
-    }
-
-    function actualizarVistaTodas() {
-        if (!allContainer) return;
-        allContainer.innerHTML = '';
-        
-        // Obtenemos las tareas de los contenedores activos
-        const pendientes = [...tasksContainer.children];
-        const completadas = [...completedContainer.children];
-
-        if (pendientes.length === 0 && completadas.length === 0) {
-            allContainer.innerHTML = '<p class="text-center text-slate-500 py-4 italic">No hay tareas para mostrar</p>';
-            return;
-        }
-
-        [...pendientes, ...completadas].forEach(tarea => {
-            const clon = tarea.cloneNode(true);
-            // Quitamos botones e inputs para que en "Ver Todas" sea solo visual
-            clon.querySelector('.delete-btn')?.remove();
-            const check = clon.querySelector('input');
-            if (check) check.disabled = true;
-            allContainer.appendChild(clon);
-        });
-    }
-
-    // Asignar eventos de navegación
-    if(btnPending) btnPending.addEventListener('click', () => activarFiltro(btnPending, viewPending));
-    if(btnCompleted) btnCompleted.addEventListener('click', () => activarFiltro(btnCompleted, viewCompleted));
-    if(btnShowAll) btnShowAll.addEventListener('click', () => activarFiltro(btnShowAll, viewAll));
-
-    // --- 4. LÓGICA DE TAREAS ---
-    if (taskForm) {
-        taskForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const texto = taskInput.value.trim();
-            if (texto !== "") {
-                agregarTarea(texto, false);
-                guardarTareasEnLocalStorage();
-                taskInput.value = "";
-            }
-        });
-    }
-    //Actualizamos el submit del formulario para que también tome en cuenta la prioridad
-    if (taskForm) {
-        taskForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const texto = taskInput.value.trim();
-            const prioridad = taskPriority.value;// Capturamos la prioridad
-            if (texto !== "") {
-                agregarTarea(texto, false, prioridad);// Pasamos la prioridad
-                guardarTareasEnLocalStorage();
-                taskInput.value = "";
-            }
-        });
-    }
-
-
+    // --- 3. GESTIÓN DE TAREAS (CORE) ---
     function agregarTarea(texto, completada = false, prioridad = "media") {
         const nuevoDiv = document.createElement('div');
-        //Definimos un color de badge según la prioridad
-        let badgeColor = "bg-yellow-300";
-        switch (prioridad) {
-            case "alta":
-                badgeColor = "bg-red-500";
-                break;
-            case "baja":
-                badgeColor = "bg-green-500";
-                break;
-        }
-
+        const badgeColors = { alta: "bg-red-500", media: "bg-yellow-400", baja: "bg-green-500" };
 
         nuevoDiv.className = "group flex justify-between items-center p-4 bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 transition-all duration-200";
-        nuevoDiv.setAttribute('data-priority', prioridad); // Guardamos la prioridad como atributo para futuros filtros
+        nuevoDiv.setAttribute('data-priority', prioridad);
+        
         nuevoDiv.innerHTML = `
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-3 flex-1">
                 <input type="checkbox" ${completada ? 'checked' : ''} class="task-checkbox w-5 h-5 rounded border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-indigo-600 focus:ring-indigo-500 cursor-pointer">
-                <span class="text-slate-700 dark:text-slate-200 transition-all ${completada ? 'line-through opacity-50' : ''}">${texto}</span>
-                <span class="ml-2 ${badgeColor} text-white text-xs font-bold uppercase px-2 py-0.5 rounded-full">${prioridad}</span>
+                <div class="flex flex-col flex-1">
+                    <span class="text-task text-slate-700 dark:text-slate-200 ${completada ? 'line-through opacity-50' : ''}">${texto}</span>
+                    <input type="text" class="edit-input hidden p-1 rounded border border-indigo-400 bg-slate-50 dark:bg-slate-900 dark:text-white outline-none w-full" value="${texto}">
+                    <span class="text-[10px] uppercase font-bold text-white px-2 py-0.5 rounded-full w-fit ${badgeColors[prioridad]} mt-1">${prioridad}</span>
+                </div>
             </div>
-            <button class="delete-btn text-slate-400 hover:text-red-500 transition-colors font-medium text-sm">Eliminar</button>
+            <div class="flex items-center gap-2">
+                <button class="edit-btn text-slate-400 hover:text-indigo-500 transition-colors font-medium text-sm">Editar</button>
+                <button class="delete-btn text-slate-400 hover:text-red-500 transition-colors font-medium text-sm">Eliminar</button>
+            </div>
         `;
 
         const checkbox = nuevoDiv.querySelector('.task-checkbox');
         const btnEliminar = nuevoDiv.querySelector('.delete-btn');
+        const btnEditar = nuevoDiv.querySelector('.edit-btn');
+        const spanTexto = nuevoDiv.querySelector('.text-task');
+        const inputEdit = nuevoDiv.querySelector('.edit-input');
 
+        // Lógica de Edición
+        btnEditar.addEventListener('click', () => {
+            const isEditing = !inputEdit.classList.contains('hidden');
+            if (isEditing) {
+                const nuevoValor = inputEdit.value.trim();
+                if (nuevoValor) {
+                    spanTexto.textContent = nuevoValor;
+                    guardarTareasEnLocalStorage();
+                }
+                inputEdit.classList.add('hidden');
+                spanTexto.classList.remove('hidden');
+                btnEditar.textContent = "Editar";
+                btnEditar.classList.remove('text-green-500');
+            } else {
+                inputEdit.classList.remove('hidden');
+                spanTexto.classList.add('hidden');
+                inputEdit.focus();
+                btnEditar.textContent = "Guardar";
+                btnEditar.classList.add('text-green-500');
+            }
+        });
+
+        inputEdit.addEventListener('keypress', (e) => { if (e.key === 'Enter') btnEditar.click(); });
+
+        // Checkbox (Completar/Descompletar)
         checkbox.addEventListener('change', () => {
-            const span = nuevoDiv.querySelector('span');
             if (checkbox.checked) {
-                span.classList.add('line-through', 'opacity-50');
+                spanTexto.classList.add('line-through', 'opacity-50');
                 completedContainer.appendChild(nuevoDiv);
             } else {
-                span.classList.remove('line-through', 'opacity-50');
+                spanTexto.classList.remove('line-through', 'opacity-50');
                 tasksContainer.appendChild(nuevoDiv);
             }
             guardarTareasEnLocalStorage();
@@ -175,18 +103,22 @@ document.addEventListener('DOMContentLoaded', () => {
             actualizarContadores();
         });
 
-        if (completada) {
-            completedContainer.appendChild(nuevoDiv);
-        } else {
-            tasksContainer.appendChild(nuevoDiv);
-        }
+        if (completada) completedContainer.appendChild(nuevoDiv);
+        else tasksContainer.appendChild(nuevoDiv);
+        
         actualizarContadores();
     }
 
-    // --- 5. PERSISTENCIA Y CONTADORES ---
+    // --- 4. PERSISTENCIA Y NAVEGACIÓN ---
     function guardarTareasEnLocalStorage() {
-        const p = [...tasksContainer.querySelectorAll('span')].map(s => s.textContent);
-        const c = [...completedContainer.querySelectorAll('span')].map(s => s.textContent);
+        const p = [...tasksContainer.children].map(t => ({
+            texto: t.querySelector('.text-task').textContent,
+            prioridad: t.getAttribute('data-priority')
+        }));
+        const c = [...completedContainer.children].map(t => ({
+            texto: t.querySelector('.text-task').textContent,
+            prioridad: t.getAttribute('data-priority')
+        }));
         localStorage.setItem('tareasPendientes', JSON.stringify(p));
         localStorage.setItem('tareasCompletadas', JSON.stringify(c));
     }
@@ -194,8 +126,8 @@ document.addEventListener('DOMContentLoaded', () => {
     function cargarTareas() {
         const p = JSON.parse(localStorage.getItem('tareasPendientes')) || [];
         const c = JSON.parse(localStorage.getItem('tareasCompletadas')) || [];
-        p.forEach(t => agregarTarea(t, false));
-        c.forEach(t => agregarTarea(t, true));
+        p.forEach(t => agregarTarea(t.texto, false, t.prioridad));
+        c.forEach(t => agregarTarea(t.texto, true, t.prioridad));
     }
 
     function actualizarContadores() {
@@ -206,7 +138,31 @@ document.addEventListener('DOMContentLoaded', () => {
         if(document.getElementById('count-total')) document.getElementById('count-total').textContent = p + c;
     }
 
-    const btnClear = document.getElementById('btn-clear-history');
+    // --- 5. EVENTOS GLOBALES ---
+    if (taskForm) {
+        taskForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const valor = taskInput.value.trim();
+            if (valor) {
+                agregarTarea(valor, false, taskPriority.value);
+                guardarTareasEnLocalStorage();
+                taskInput.value = "";
+            }
+        });
+    }
+
+    if (btnCompleteAll) {
+        btnCompleteAll.addEventListener('click', () => {
+            [...tasksContainer.children].forEach(tarea => {
+                const check = tarea.querySelector('input[type="checkbox"]');
+                if (check && !check.checked) {
+                    check.checked = true;
+                    check.dispatchEvent(new Event('change'));
+                }
+            });
+        });
+    }
+
     if (btnClear) {
         btnClear.addEventListener('click', () => {
             if (confirm("¿Limpiar historial?")) {
@@ -221,12 +177,58 @@ document.addEventListener('DOMContentLoaded', () => {
         searchInput.addEventListener('input', (e) => {
             const filtro = e.target.value.toLowerCase();
             document.querySelectorAll('#tasks-container > div, #completed-container > div').forEach(tarea => {
-                const texto = tarea.querySelector('span').textContent.toLowerCase();
+                const texto = tarea.querySelector('.text-task').textContent.toLowerCase();
                 tarea.style.display = texto.includes(filtro) ? "flex" : "none";
             });
         });
     }
 
-    // Lanzar carga inicial
+    // Filtros de navegación
+    function activarFiltro(btnActivo, vistaMostrar) {
+        [btnPending, btnCompleted, btnShowAll].forEach(btn => {
+            btn?.classList.remove('font-bold', 'text-indigo-600', 'bg-indigo-50', 'dark:bg-indigo-900/30');
+            btn?.classList.add('text-slate-500', 'dark:text-slate-400');
+        });
+        [viewPending, viewCompleted, viewAll].forEach(v => v?.classList.add('hidden'));
+
+        btnActivo.classList.add('font-bold', 'text-indigo-600', 'bg-indigo-50', 'dark:bg-indigo-900/30');
+        vistaMostrar.classList.remove('hidden');
+
+        if (vistaMostrar === viewAll) {
+            allContainer.innerHTML = '';
+            [...tasksContainer.children, ...completedContainer.children].forEach(t => {
+                const clon = t.cloneNode(true);
+                clon.querySelector('.delete-btn')?.remove();
+                clon.querySelector('.edit-btn')?.remove();
+                const check = clon.querySelector('input');
+                if (check) check.disabled = true;
+                allContainer.appendChild(clon);
+            });
+        }
+    }
+
+    btnPending?.addEventListener('click', () => activarFiltro(btnPending, viewPending));
+    btnCompleted?.addEventListener('click', () => activarFiltro(btnCompleted, viewCompleted));
+    btnShowAll?.addEventListener('click', () => activarFiltro(btnShowAll, viewAll));
+
+    // Ordenación
+    if (sortFilter) {
+        sortFilter.addEventListener('change', () => {
+            const criterio = sortFilter.value;
+            const ordenar = (contenedor) => {
+                const tareas = [...contenedor.children];
+                const prioMap = { alta: 3, media: 2, baja: 1 };
+                tareas.sort((a, b) => {
+                    if (criterio === 'prioridad') return prioMap[b.getAttribute('data-priority')] - prioMap[a.getAttribute('data-priority')];
+                    if (criterio === 'alfabetico') return a.querySelector('.text-task').textContent.localeCompare(b.querySelector('.text-task').textContent);
+                    return 0;
+                });
+                tareas.forEach(t => contenedor.appendChild(t));
+            };
+            ordenar(tasksContainer);
+            ordenar(completedContainer);
+        });
+    }
+
     cargarTareas();
 });

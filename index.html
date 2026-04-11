@@ -71,6 +71,12 @@
                 <input type="text" id="search-input" 
                     class="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all" 
                     placeholder="🔍 Buscar tarea...">
+
+                    <select id="sort-filter" class="p-3 rounded-xl border border-slate-400 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer text-sm font-medium">
+                    <option value="fecha">📅 Fecha (Recientes)</option>
+                    <option value="prioridad">🔥 Prioridad (Alta a Baja)</option>
+                    <option value="alfabetico">🔤 Alfabético (A-Z)</option>
+                    </select>
             </section>
 
             <div id="view-pending">
