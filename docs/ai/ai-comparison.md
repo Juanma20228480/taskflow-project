@@ -117,4 +117,6 @@ function crearContadores() {
     return funciones;
 }
 
+Una vez más, nos encontramos la mayor precisión esquemática que muetra Claud frente a la solución más directa y dirigida que nos da GPT. Claude es esquemático y muy visual en sus explicaciones reduciendo la abstracción del código
+
 

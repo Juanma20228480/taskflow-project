@@ -32,12 +32,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- 3. GESTIÓN DE TAREAS (CORE) ---
-    function agregarTarea(texto, completada = false, prioridad = "media") {
+    function agregarTarea(texto, completada = false, prioridad = "media", id) {
         const nuevoDiv = document.createElement('div');
         const badgeColors = { alta: "bg-red-500", media: "bg-yellow-400", baja: "bg-green-500" };
 
         nuevoDiv.className = "group flex justify-between items-center p-4 bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 transition-all duration-200";
         nuevoDiv.setAttribute('data-priority', prioridad);
+        if (id != null) {
+            nuevoDiv.setAttribute('data-id', String(id));
+        }
         
         nuevoDiv.innerHTML = `
             <div class="flex items-center gap-3 flex-1">
@@ -61,13 +64,29 @@ document.addEventListener('DOMContentLoaded', () => {
         const inputEdit = nuevoDiv.querySelector('.edit-input');
 
         // Lógica de Edición
-        btnEditar.addEventListener('click', () => {
+        btnEditar.addEventListener('click', async () => {
             const isEditing = !inputEdit.classList.contains('hidden');
             if (isEditing) {
                 const nuevoValor = inputEdit.value.trim();
                 if (nuevoValor) {
+                    const taskId = nuevoDiv.getAttribute('data-id');
+                    if (taskId) {
+                        try {
+                            const res = await fetch(`${API_TASKS_URL}/${taskId}`, {
+                                method: 'PUT',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ title: nuevoValor }),
+                            });
+                            const json = await res.json();
+                            if (!res.ok || !json.success) {
+                                throw new Error(json.message || 'Error al actualizar la tarea');
+                            }
+                        } catch (err) {
+                            console.error(err);
+                            return;
+                        }
+                    }
                     spanTexto.textContent = nuevoValor;
-                    guardarTareasEnLocalStorage();
                 }
                 inputEdit.classList.add('hidden');
                 spanTexto.classList.remove('hidden');
@@ -85,7 +104,26 @@ document.addEventListener('DOMContentLoaded', () => {
         inputEdit.addEventListener('keypress', (e) => { if (e.key === 'Enter') btnEditar.click(); });
 
         // Checkbox (Completar/Descompletar)
-        checkbox.addEventListener('change', () => {
+        checkbox.addEventListener('change', async () => {
+            const taskId = nuevoDiv.getAttribute('data-id');
+            const willBeCompleted = checkbox.checked;
+            if (taskId) {
+                try {
+                    const res = await fetch(`${API_TASKS_URL}/${taskId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ completed: willBeCompleted }),
+                    });
+                    const json = await res.json();
+                    if (!res.ok || !json.success) {
+                        throw new Error(json.message || 'Error al actualizar el estado de la tarea');
+                    }
+                } catch (err) {
+                    console.error(err);
+                    checkbox.checked = !willBeCompleted;
+                    return;
+                }
+            }
             if (checkbox.checked) {
                 spanTexto.classList.add('line-through', 'opacity-50');
                 completedContainer.appendChild(nuevoDiv);
@@ -93,13 +131,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 spanTexto.classList.remove('line-through', 'opacity-50');
                 tasksContainer.appendChild(nuevoDiv);
             }
-            guardarTareasEnLocalStorage();
             actualizarContadores();
         });
 
-        btnEliminar.addEventListener('click', () => {
+        btnEliminar.addEventListener('click', async () => {
+            const taskId = nuevoDiv.getAttribute('data-id');
+            if (taskId) {
+                try {
+                    const res = await fetch(`${API_TASKS_URL}/${taskId}`, {
+                        method: 'DELETE',
+                    });
+                    const json = await res.json();
+                    if (!res.ok || !json.success) {
+                        throw new Error(json.message || 'Error al eliminar la tarea');
+                    }
+                } catch (err) {
+                    console.error(err);
+                    return;
+                }
+            }
             nuevoDiv.remove();
-            guardarTareasEnLocalStorage();
             actualizarContadores();
         });
 
@@ -110,24 +161,21 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- 4. PERSISTENCIA Y NAVEGACIÓN ---
-    function guardarTareasEnLocalStorage() {
-        const p = [...tasksContainer.children].map(t => ({
-            texto: t.querySelector('.text-task').textContent,
-            prioridad: t.getAttribute('data-priority')
-        }));
-        const c = [...completedContainer.children].map(t => ({
-            texto: t.querySelector('.text-task').textContent,
-            prioridad: t.getAttribute('data-priority')
-        }));
-        localStorage.setItem('tareasPendientes', JSON.stringify(p));
-        localStorage.setItem('tareasCompletadas', JSON.stringify(c));
-    }
+    const API_TASKS_URL = "http://localhost:3000/api/tasks";
 
-    function cargarTareas() {
-        const p = JSON.parse(localStorage.getItem('tareasPendientes')) || [];
-        const c = JSON.parse(localStorage.getItem('tareasCompletadas')) || [];
-        p.forEach(t => agregarTarea(t.texto, false, t.prioridad));
-        c.forEach(t => agregarTarea(t.texto, true, t.prioridad));
+    async function cargarTareas() {
+        try {
+            const res = await fetch(API_TASKS_URL);
+            const json = await res.json();
+            if (!res.ok || !json.success) {
+                throw new Error(json.message || "Error al cargar las tareas");
+            }
+            (json.data || []).forEach((task) => {
+                agregarTarea(task.title, task.completed, "media", task._id ?? task.id);
+            });
+        } catch (err) {
+            console.error(err);
+        }
     }
 
     function actualizarContadores() {
@@ -140,13 +188,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- 5. EVENTOS GLOBALES ---
     if (taskForm) {
-        taskForm.addEventListener('submit', (e) => {
+        taskForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const valor = taskInput.value.trim();
-            if (valor) {
-                agregarTarea(valor, false, taskPriority.value);
-                guardarTareasEnLocalStorage();
+            if (!valor) return;
+            try {
+                const res = await fetch(API_TASKS_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ title: valor, completed: false }),
+                });
+                const json = await res.json();
+                if (!res.ok || !json.success) {
+                    throw new Error(json.message || "Error al crear la tarea");
+                }
+                agregarTarea(json.data.title, json.data.completed, taskPriority.value, json.data._id ?? json.data.id);
                 taskInput.value = "";
+            } catch (err) {
+                console.error(err);
             }
         });
     }
@@ -164,12 +223,28 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (btnClear) {
-        btnClear.addEventListener('click', () => {
-            if (confirm("¿Limpiar historial?")) {
-                completedContainer.innerHTML = '';
-                guardarTareasEnLocalStorage();
-                actualizarContadores();
+        btnClear.addEventListener('click', async () => {
+            if (!confirm("¿Limpiar historial?")) return;
+            const items = [...completedContainer.children];
+            for (const el of items) {
+                const taskId = el.getAttribute('data-id');
+                if (taskId) {
+                    try {
+                        const res = await fetch(`${API_TASKS_URL}/${taskId}`, {
+                            method: 'DELETE',
+                        });
+                        const json = await res.json();
+                        if (!res.ok || !json.success) {
+                            throw new Error(json.message || 'Error al eliminar la tarea');
+                        }
+                    } catch (err) {
+                        console.error(err);
+                        continue;
+                    }
+                }
+                el.remove();
             }
+            actualizarContadores();
         });
     }
 
