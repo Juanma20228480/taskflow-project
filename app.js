@@ -72,15 +72,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     const taskId = nuevoDiv.getAttribute('data-id');
                     if (taskId) {
                         try {
-                            const res = await fetch(`${API_TASKS_URL}/${taskId}`, {
+                            await requestWithFallback(`/${taskId}`, {
                                 method: 'PUT',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({ title: nuevoValor }),
-                            });
-                            const json = await res.json();
-                            if (!res.ok || !json.success) {
-                                throw new Error(json.message || 'Error al actualizar la tarea');
-                            }
+                            }, () => updateLocalTask(taskId, { title: nuevoValor }));
                         } catch (err) {
                             console.error(err);
                             return;
@@ -109,15 +105,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const willBeCompleted = checkbox.checked;
             if (taskId) {
                 try {
-                    const res = await fetch(`${API_TASKS_URL}/${taskId}`, {
+                    await requestWithFallback(`/${taskId}`, {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ completed: willBeCompleted }),
-                    });
-                    const json = await res.json();
-                    if (!res.ok || !json.success) {
-                        throw new Error(json.message || 'Error al actualizar el estado de la tarea');
-                    }
+                    }, () => updateLocalTask(taskId, { completed: willBeCompleted }));
                 } catch (err) {
                     console.error(err);
                     checkbox.checked = !willBeCompleted;
@@ -138,13 +130,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const taskId = nuevoDiv.getAttribute('data-id');
             if (taskId) {
                 try {
-                    const res = await fetch(`${API_TASKS_URL}/${taskId}`, {
+                    await requestWithFallback(`/${taskId}`, {
                         method: 'DELETE',
+                    }, () => {
+                        deleteLocalTask(taskId);
+                        return { success: true };
                     });
-                    const json = await res.json();
-                    if (!res.ok || !json.success) {
-                        throw new Error(json.message || 'Error al eliminar la tarea');
-                    }
                 } catch (err) {
                     console.error(err);
                     return;
@@ -162,16 +153,75 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- 4. PERSISTENCIA Y NAVEGACIÓN ---
     const API_TASKS_URL = "http://localhost:3000/api/tasks";
+    const LOCAL_STORAGE_TASKS_KEY = "tasks_local_fallback";
+    let isApiAvailable = null;
+
+    function getLocalTasks() {
+        try {
+            const raw = localStorage.getItem(LOCAL_STORAGE_TASKS_KEY);
+            const parsed = raw ? JSON.parse(raw) : [];
+            return Array.isArray(parsed) ? parsed : [];
+        } catch (err) {
+            console.error("No se pudieron leer tareas locales:", err);
+            return [];
+        }
+    }
+
+    function saveLocalTasks(tasks) {
+        localStorage.setItem(LOCAL_STORAGE_TASKS_KEY, JSON.stringify(tasks));
+    }
+
+    function createLocalTask({ title, completed = false, priority = "media" }) {
+        const tasks = getLocalTasks();
+        const newTask = {
+            id: `local-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+            title,
+            completed,
+            priority,
+        };
+        tasks.push(newTask);
+        saveLocalTasks(tasks);
+        return newTask;
+    }
+
+    function updateLocalTask(taskId, changes) {
+        const tasks = getLocalTasks();
+        const index = tasks.findIndex((task) => String(task.id ?? task._id) === String(taskId));
+        if (index === -1) return null;
+        tasks[index] = { ...tasks[index], ...changes };
+        saveLocalTasks(tasks);
+        return tasks[index];
+    }
+
+    function deleteLocalTask(taskId) {
+        const tasks = getLocalTasks();
+        const nextTasks = tasks.filter((task) => String(task.id ?? task._id) !== String(taskId));
+        saveLocalTasks(nextTasks);
+    }
+
+    async function requestWithFallback(path = "", options = {}, fallbackFn) {
+        if (isApiAvailable !== false) {
+            try {
+                const res = await fetch(`${API_TASKS_URL}${path}`, options);
+                const json = await res.json();
+                if (!res.ok || !json.success) {
+                    throw new Error(json.message || "Error en la API");
+                }
+                isApiAvailable = true;
+                return json.data;
+            } catch (err) {
+                console.warn("API no disponible, usando localStorage:", err);
+                isApiAvailable = false;
+            }
+        }
+        return fallbackFn ? fallbackFn() : null;
+    }
 
     async function cargarTareas() {
         try {
-            const res = await fetch(API_TASKS_URL);
-            const json = await res.json();
-            if (!res.ok || !json.success) {
-                throw new Error(json.message || "Error al cargar las tareas");
-            }
-            (json.data || []).forEach((task) => {
-                agregarTarea(task.title, task.completed, "media", task._id ?? task.id);
+            const data = await requestWithFallback("", { method: "GET" }, () => getLocalTasks());
+            (data || []).forEach((task) => {
+                agregarTarea(task.title, task.completed, task.priority ?? "media", task._id ?? task.id);
             });
         } catch (err) {
             console.error(err);
@@ -193,16 +243,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const valor = taskInput.value.trim();
             if (!valor) return;
             try {
-                const res = await fetch(API_TASKS_URL, {
+                const data = await requestWithFallback("", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ title: valor, completed: false }),
-                });
-                const json = await res.json();
-                if (!res.ok || !json.success) {
-                    throw new Error(json.message || "Error al crear la tarea");
-                }
-                agregarTarea(json.data.title, json.data.completed, taskPriority.value, json.data._id ?? json.data.id);
+                    body: JSON.stringify({ title: valor, completed: false, priority: taskPriority.value }),
+                }, () => createLocalTask({ title: valor, completed: false, priority: taskPriority.value }));
+                agregarTarea(data.title, data.completed, data.priority ?? taskPriority.value, data._id ?? data.id);
                 taskInput.value = "";
             } catch (err) {
                 console.error(err);
@@ -230,13 +276,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 const taskId = el.getAttribute('data-id');
                 if (taskId) {
                     try {
-                        const res = await fetch(`${API_TASKS_URL}/${taskId}`, {
+                        await requestWithFallback(`/${taskId}`, {
                             method: 'DELETE',
+                        }, () => {
+                            deleteLocalTask(taskId);
+                            return { success: true };
                         });
-                        const json = await res.json();
-                        if (!res.ok || !json.success) {
-                            throw new Error(json.message || 'Error al eliminar la tarea');
-                        }
                     } catch (err) {
                         console.error(err);
                         continue;
