@@ -153,13 +153,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // --- 4. PERSISTENCIA Y NAVEGACIÓN (MODIFICADO) ---
-// Detectamos si estamos trabajando en el PC (localhost) o en internet (Vercel)
-const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+// Local: API en el puerto del servidor Express. Resto: URL relativa al HTML (necesario en GitHub Pages /repo/…).
+const isLocal =
+    window.location.hostname === "localhost" ||
+    window.location.hostname === "127.0.0.1";
 
-// Si es local, usa el puerto 3000. Si es Vercel, usa la ruta relativa.
-const API_TASKS_URL = isLocal 
-    ? "http://localhost:3000/api/tasks" 
-    : "/api/tasks";
+const API_TASKS_URL = isLocal
+    ? "http://localhost:3000/api/tasks"
+    : new URL("api/tasks", window.location.href).href;
 
 const LOCAL_STORAGE_TASKS_KEY = "tasks_local_fallback";
 let isApiAvailable = null;
@@ -208,6 +209,10 @@ let isApiAvailable = null;
     }
 
     async function requestWithFallback(path = "", options = {}, fallbackFn) {
+        // --- EXTRA RÚBRICA: Mostrar cargando ---
+    const loader = document.getElementById('loading-state');
+    if (loader) loader.classList.remove('hidden');
+        
         if (isApiAvailable !== false) {
             try {
                 const res = await fetch(`${API_TASKS_URL}${path}`, options);
@@ -220,9 +225,18 @@ let isApiAvailable = null;
             } catch (err) {
                 console.warn("API no disponible, usando localStorage:", err);
                 isApiAvailable = false;
+            } finally {
+            // --- EXTRA RÚBRICA: Ocultar cargando al terminar ---
+            if (loader) loader.classList.add('hidden');
+        
             }
         }
-        return fallbackFn ? fallbackFn() : null;
+        // Si la API falló, ejecutamos el plan B (LocalStorage)
+        const result = fallbackFn ? fallbackFn() : null;
+
+        // Nos aseguramos de ocultar el cargador también si entramos en LocalStorage
+        if (loader) loader.classList.add('hidden');
+        return result;
     }
 
     async function cargarTareas() {
