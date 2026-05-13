@@ -151,10 +151,18 @@ document.addEventListener('DOMContentLoaded', () => {
         actualizarContadores();
     }
 
-    // --- 4. PERSISTENCIA Y NAVEGACIÓN ---
-    const API_TASKS_URL = "http://localhost:3000/api/tasks";
-    const LOCAL_STORAGE_TASKS_KEY = "tasks_local_fallback";
-    let isApiAvailable = null;
+
+    // --- 4. PERSISTENCIA Y NAVEGACIÓN (MODIFICADO) ---
+// Detectamos si estamos trabajando en el PC (localhost) o en internet (Vercel)
+const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+
+// Si es local, usa el puerto 3000. Si es Vercel, usa la ruta relativa.
+const API_TASKS_URL = isLocal 
+    ? "http://localhost:3000/api/tasks" 
+    : "/api/tasks";
+
+const LOCAL_STORAGE_TASKS_KEY = "tasks_local_fallback";
+let isApiAvailable = null;
 
     function getLocalTasks() {
         try {
